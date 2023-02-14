@@ -4,7 +4,7 @@ use termion;
 use termion::color;
 use termion::raw::IntoRawMode;
 
-use palette::{FromColor, Hsv, Hsl, Srgb};
+use palette::{FromColor, Hsl, Hsv, Srgb};
 use std::f64;
 use std::io::{stdout, Write};
 use std::iter::zip;
@@ -12,7 +12,7 @@ use std::iter::zip;
 #[derive(Parser, Debug)]
 struct Cli {
     /// the number of rows:
-    size: usize
+    size: usize,
 }
 
 fn term_color(color: &i8) -> termion::color::Rgb {
@@ -29,8 +29,14 @@ fn term_color(color: &i8) -> termion::color::Rgb {
 const ROW_COUNT: usize = 12;
 const COL_COUNT: usize = ROW_COUNT * 2;
 
-fn draw(matrix: [[i8; COL_COUNT]; ROW_COUNT]) {
+fn mean(a: &i8, b: &i8) -> i8 {
+    let a = *a as i16;
+    let b = *b as i16;
+    let c = (a + b) / 2;
+    return c as i8;
+}
 
+fn draw(matrix: [[i8; COL_COUNT]; ROW_COUNT]) {
     let mut stdout = stdout().into_raw_mode().unwrap();
 
     let circle = matrix
@@ -38,25 +44,27 @@ fn draw(matrix: [[i8; COL_COUNT]; ROW_COUNT]) {
         .map(|rows| {
             zip(rows[0].windows(2), rows[1].windows(2))
                 .map(|t| match [t.0, t.1] {
-                    [[0, 0], [0, 0]]   => format!("{} ", color::Fg(term_color(&0))),
-                    [[0, 0], [0, d]]   => format!("{}▗", color::Fg(term_color(d))),
-                    [[0, 0], [c, 0]]   => format!("{}▖", color::Fg(term_color(c))),
-                    [[0, 0], [c, _d]]  => format!("{}▄", color::Fg(term_color(c))),
-                    [[0, b], [0, 0]]   => format!("{}▝", color::Fg(term_color(b))),
-                    [[0, _b], [0, d]]  => format!("{}▐", color::Fg(term_color(d))),
-                    [[0, b], [_c, 0]]  => format!("{}▞", color::Fg(term_color(b))),
+                    [[0, 0], [0, 0]] => format!("{} ", color::Fg(term_color(&0))),
+                    [[0, 0], [0, d]] => format!("{}▗", color::Fg(term_color(d))),
+                    [[0, 0], [c, 0]] => format!("{}▖", color::Fg(term_color(c))),
+                    [[0, 0], [c, d]] => format!("{}▄", color::Fg(term_color(&mean(c,d)))),
+                    [[0, b], [0, 0]] => format!("{}▝", color::Fg(term_color(b))),
+                    [[0, b], [0, d]] => format!("{}▐", color::Fg(term_color(&mean(b,d)))),
+                    [[0, b], [_c, 0]] => format!("{}▞", color::Fg(term_color(b))),
                     [[0, _b], [_c, d]] => format!("{}▟", color::Fg(term_color(d))),
-                    [[a, 0], [0, 0]]   => format!("{}▘", color::Fg(term_color(a))),
-                    [[a, 0], [0, _d]]  => format!("{}▚", color::Fg(term_color(a))),
-                    [[a, 0], [_c, 0]]  => format!("{}▌", color::Fg(term_color(a))),
-                    [[a, 0], [_c, _d]] => format!("{}▙", color::Fg(term_color(a))),
-                    [[a, _b], [0, 0]]  => format!("{}▀", color::Fg(term_color(a))),
-                    [[a, _b], [0, _d]] => format!("{}▜", color::Fg(term_color(a))),
+                    [[a, 0], [0, 0]] => format!("{}▘", color::Fg(term_color(a))),
+                    [[a, 0], [0, _d]] => format!("{}▚", color::Fg(term_color(a))),
+                    [[a, 0], [_c, 0]] => format!("{}▌", color::Fg(term_color(a))),
+                    [[_a, 0], [c, _d]] => format!("{}▙", color::Fg(term_color(c))),
+                    [[a, b], [0, 0]] => format!("{}▀", color::Fg(term_color(&mean(a,b)))),
+                    [[_a, b], [0, _d]] => format!("{}▜", color::Fg(term_color(b))),
                     [[a, _b], [_c, 0]] => format!("{}▛", color::Fg(term_color(a))),
-                    [[a, _b], [_c, d]] => format!("{}{}▄{}",
-                                                    color::Bg(term_color(a)),
-                                                    color::Fg(term_color(d)),
-                                                    color::Bg(color::Reset)),
+                    [[a, b], [c, d]] => format!(
+                        "{}{}▄{}",
+                        color::Bg(term_color(&mean(a,b))),
+                        color::Fg(term_color(&mean(c,d))),
+                        color::Bg(color::Reset)
+                    ),
                     _ => format!(" "),
                 })
                 .collect::<String>()
@@ -73,9 +81,7 @@ fn point_in_ellipse(a: f64, b: f64, x: f64, y: f64) -> bool {
     (x * x) / (a * a) + (y * y) / (b * b) < 1.0
 }
 
-
 fn circle() -> [[i8; COL_COUNT]; ROW_COUNT] {
-
     let mut matrix = [[0; COL_COUNT]; ROW_COUNT];
 
     for i in 0..ROW_COUNT {
@@ -88,12 +94,13 @@ fn circle() -> [[i8; COL_COUNT]; ROW_COUNT] {
 
             let x = i as f64 - inner + 0.5;
             let y = j as f64 - outer + 0.5;
-            let angle = (f64::atan2(x,y) * 128.0 / f64::consts::PI) as i8;
+            let angle = (f64::atan2(x, y) * 128.0 / f64::consts::PI) as i8;
 
             let within = point_in_ellipse(inner, outer, x, y);
             // let withininner = point_in_ellipse(inner2, outer2, x, y);
 
-            if within {// && !withininner {
+            if within {
+                // && !withininner {
                 matrix[i][j] = angle;
             } else {
                 matrix[i][j] = 0;
@@ -117,4 +124,3 @@ fn main() {
     let _area = Area { width, height };
     draw(circle());
 }
-
