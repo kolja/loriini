@@ -22,10 +22,10 @@ struct Cli {
     radius: f64,
 
     #[arg(short = 'o', value_name = "color offset", default_value_t = 0)]
-    offset: i8,
+    offset: i16,
 }
 
-fn term_color(color: &i8) -> termion::color::Rgb {
+fn term_color(color: &i16) -> termion::color::Rgb {
     let hue = ((*color as f64) / 255.0) * 360.0;
     let c = Hsl::new(hue, 1.0, 0.4);
     let srgb = Srgb::from_color(c);
@@ -36,17 +36,18 @@ fn term_color(color: &i8) -> termion::color::Rgb {
     )
 }
 
-fn mean(a: &i8, b: &i8) -> i8 {
-    let a = *a as i16;
-    let b = *b as i16;
+fn mean(a: &i16, b: &i16) -> i16 {
+    let a = *a;
+    let b = *b;
     let c = (a + b) / 2;
-    return c as i8;
+    return c as i16;
 }
 
 fn draw(area: Area) {
     let mut stdout = stdout().into_raw_mode().unwrap();
 
-    let circle = area.grid
+    let circle = area
+        .grid
         .windows(2)
         .map(|rows| {
             zip(rows[0].windows(2), rows[1].windows(2))
@@ -68,8 +69,8 @@ fn draw(area: Area) {
                     [[a, _b], [_c, 0]] => format!("{}▛", color::Fg(term_color(a))),
                     [[a, b], [c, d]] => format!(
                         "{}{}▄{}",
-                        color::Bg(term_color(&mean(a,b))),
-                        color::Fg(term_color(&mean(c,d))),
+                        color::Bg(term_color(&mean(a, b))),
+                        color::Fg(term_color(&mean(c, d))),
                         color::Bg(color::Reset)
                     ),
                     _ => format!(" "),
@@ -89,7 +90,6 @@ fn point_in_circle(x: f64, y: f64, r: f64) -> bool {
 }
 
 fn circle(mut area: Area) -> Area {
-
     for i in 0..area.height {
         for j in 0..area.width {
             let cols2 = area.width as f64 / 2.0;
@@ -97,14 +97,14 @@ fn circle(mut area: Area) -> Area {
 
             let x = (j as f64 - cols2 + 0.5) * area.factorx;
             let y = i as f64 - rows2 + 0.5;
-            let angle = (f64::atan2(x, y) * 128.0 / f64::consts::PI) as i8;
+            let angle = (f64::atan2(x, y) * 128.0 / f64::consts::PI) as i16;
 
             let within = point_in_circle(x, y, area.radius);
             // let withininner = point_in_ellipse(inner2, outer2, x, y);
 
             if within {
                 // && !withininner {
-                area.grid[i][j] = angle;
+                area.grid[i][j] = (angle + area.offset) % 256;
             } else {
                 area.grid[i][j] = 0;
             }
@@ -118,8 +118,8 @@ struct Area {
     height: usize,
     radius: f64,
     factorx: f64,
-    offset: i8,
-    grid: Vec<Vec<i8>>,
+    offset: i16,
+    grid: Vec<Vec<i16>>,
 }
 
 fn main() {
@@ -133,6 +133,13 @@ fn main() {
     let offset = args.offset;
 
     let grid = vec![vec![0; width]; height];
-    let area = Area { width, height, radius, factorx, offset, grid };
+    let area = Area {
+        width,
+        height,
+        radius,
+        factorx,
+        offset,
+        grid,
+    };
     draw(circle(area));
 }
