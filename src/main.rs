@@ -11,8 +11,18 @@ use std::iter::zip;
 
 #[derive(Parser, Debug)]
 struct Cli {
-    /// the number of rows:
+    // the number of rows:
+    #[arg(short = 's', value_name = "Size", default_value_t = 10)]
     size: usize,
+
+    #[arg(short = 'x', value_name = "factorx (float)", default_value_t = 0.5)]
+    factorx: f64,
+
+    #[arg(short = 'r', value_name = "outer radius", default_value_t = 5.0)]
+    radius: f64,
+
+    #[arg(short = 'o', value_name = "color offset", default_value_t = 0)]
+    offset: i8,
 }
 
 fn term_color(color: &i8) -> termion::color::Rgb {
@@ -26,9 +36,6 @@ fn term_color(color: &i8) -> termion::color::Rgb {
     )
 }
 
-const ROW_COUNT: usize = 12;
-const COL_COUNT: usize = ROW_COUNT * 2;
-
 fn mean(a: &i8, b: &i8) -> i8 {
     let a = *a as i16;
     let b = *b as i16;
@@ -36,10 +43,10 @@ fn mean(a: &i8, b: &i8) -> i8 {
     return c as i8;
 }
 
-fn draw(matrix: [[i8; COL_COUNT]; ROW_COUNT]) {
+fn draw(area: Area) {
     let mut stdout = stdout().into_raw_mode().unwrap();
 
-    let circle = matrix
+    let circle = area.grid
         .windows(2)
         .map(|rows| {
             zip(rows[0].windows(2), rows[1].windows(2))
@@ -77,50 +84,55 @@ fn draw(matrix: [[i8; COL_COUNT]; ROW_COUNT]) {
     // stdout.flush().unwrap();
 }
 
-fn point_in_ellipse(a: f64, b: f64, x: f64, y: f64) -> bool {
-    (x * x) / (a * a) + (y * y) / (b * b) < 1.0
+fn point_in_circle(x: f64, y: f64, r: f64) -> bool {
+    (x * x) + (y * y) < (r * r)
 }
 
-fn circle() -> [[i8; COL_COUNT]; ROW_COUNT] {
-    let mut matrix = [[0; COL_COUNT]; ROW_COUNT];
+fn circle(mut area: Area) -> Area {
 
-    for i in 0..ROW_COUNT {
-        for j in 0..COL_COUNT {
-            let inner = ROW_COUNT as f64 / 2.0;
-            let outer = COL_COUNT as f64 / 2.0;
+    for i in 0..area.height {
+        for j in 0..area.width {
+            let cols2 = area.width as f64 / 2.0;
+            let rows2 = area.height as f64 / 2.0;
 
-            // let inner2 = (ROW_COUNT - 3) as f64 / 2.0;
-            // let outer2 = (COL_COUNT - 5) as f64 / 2.0;
-
-            let x = i as f64 - inner + 0.5;
-            let y = j as f64 - outer + 0.5;
+            let x = (j as f64 - cols2 + 0.5) * area.factorx;
+            let y = i as f64 - rows2 + 0.5;
             let angle = (f64::atan2(x, y) * 128.0 / f64::consts::PI) as i8;
 
-            let within = point_in_ellipse(inner, outer, x, y);
+            let within = point_in_circle(x, y, area.radius);
             // let withininner = point_in_ellipse(inner2, outer2, x, y);
 
             if within {
                 // && !withininner {
-                matrix[i][j] = angle;
+                area.grid[i][j] = angle;
             } else {
-                matrix[i][j] = 0;
+                area.grid[i][j] = 0;
             }
         }
     }
-    matrix
+    area
 }
 
 struct Area {
     width: usize,
     height: usize,
+    radius: f64,
+    factorx: f64,
+    offset: i8,
+    grid: Vec<Vec<i8>>,
 }
 
 fn main() {
     let args = Cli::parse();
-    let width = args.size * 2;
+
     let height = args.size;
-    // Todo: don't rely on globals. Pass in Area struct instead.
-    // Also: store Array data on that very struct.
-    let _area = Area { width, height };
-    draw(circle());
+    let width = height * 2;
+
+    let radius = args.radius;
+    let factorx = args.factorx;
+    let offset = args.offset;
+
+    let grid = vec![vec![0; width]; height];
+    let area = Area { width, height, radius, factorx, offset, grid };
+    draw(circle(area));
 }
