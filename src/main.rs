@@ -1,13 +1,14 @@
-#![allow(unused_imports)]
-use clap::Parser;
-use termion;
-use termion::color;
-use termion::raw::IntoRawMode;
 
-use palette::{FromColor, Hsl, Hsv, Srgb};
-use std::f64;
-use std::io::{stdout, Write};
-use std::iter::zip;
+use clap::Parser;
+
+mod model;
+use model::Area;
+
+mod draw;
+use draw::draw;
+
+mod circle;
+use circle::circle;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -23,103 +24,6 @@ struct Cli {
 
     #[arg(short = 'o', value_name = "color offset", default_value_t = 0)]
     offset: i16,
-}
-
-fn term_color(color: &i16) -> termion::color::Rgb {
-    let hue = ((*color as f64) / 255.0) * 360.0;
-    let c = Hsl::new(hue, 1.0, 0.4);
-    let srgb = Srgb::from_color(c);
-    termion::color::Rgb(
-        (srgb.red * 255.0) as u8,
-        (srgb.green * 255.0) as u8,
-        (srgb.blue * 255.0) as u8,
-    )
-}
-
-fn mean(a: &i16, b: &i16) -> i16 {
-    let a = *a;
-    let b = *b;
-    let c = (a + b) / 2;
-    return c as i16;
-}
-
-fn draw(area: Area) {
-    let mut stdout = stdout().into_raw_mode().unwrap();
-
-    let circle = area
-        .grid
-        .windows(2)
-        .map(|rows| {
-            zip(rows[0].windows(2), rows[1].windows(2))
-                .map(|t| match [t.0, t.1] {
-                    [[0, 0], [0, 0]] => format!("{} ", color::Fg(term_color(&0))),
-                    [[0, 0], [0, d]] => format!("{}▗", color::Fg(term_color(d))),
-                    [[0, 0], [c, 0]] => format!("{}▖", color::Fg(term_color(c))),
-                    [[0, 0], [c, d]] => format!("{}▄", color::Fg(term_color(&mean(c,d)))),
-                    [[0, b], [0, 0]] => format!("{}▝", color::Fg(term_color(b))),
-                    [[0, b], [0, d]] => format!("{}▐", color::Fg(term_color(&mean(b,d)))),
-                    [[0, b], [_c, 0]] => format!("{}▞", color::Fg(term_color(b))),
-                    [[0, _b], [_c, d]] => format!("{}▟", color::Fg(term_color(d))),
-                    [[a, 0], [0, 0]] => format!("{}▘", color::Fg(term_color(a))),
-                    [[a, 0], [0, _d]] => format!("{}▚", color::Fg(term_color(a))),
-                    [[a, 0], [_c, 0]] => format!("{}▌", color::Fg(term_color(a))),
-                    [[_a, 0], [c, _d]] => format!("{}▙", color::Fg(term_color(c))),
-                    [[a, b], [0, 0]] => format!("{}▀", color::Fg(term_color(&mean(a,b)))),
-                    [[_a, b], [0, _d]] => format!("{}▜", color::Fg(term_color(b))),
-                    [[a, _b], [_c, 0]] => format!("{}▛", color::Fg(term_color(a))),
-                    [[a, b], [c, d]] => format!(
-                        "{}{}▄{}",
-                        color::Bg(term_color(&mean(a, b))),
-                        color::Fg(term_color(&mean(c, d))),
-                        color::Bg(color::Reset)
-                    ),
-                    _ => format!(" "),
-                })
-                .collect::<String>()
-        })
-        .collect::<Vec<_>>()
-        .join("\r\n");
-
-    write!(stdout, "{}\r\n", circle).expect("`write!` failed");
-
-    // stdout.flush().unwrap();
-}
-
-fn point_in_circle(x: f64, y: f64, r: f64) -> bool {
-    (x * x) + (y * y) < (r * r)
-}
-
-fn circle(mut area: Area) -> Area {
-    for i in 0..area.height {
-        for j in 0..area.width {
-            let cols2 = area.width as f64 / 2.0;
-            let rows2 = area.height as f64 / 2.0;
-
-            let x = (j as f64 - cols2 + 0.5) * area.factorx;
-            let y = i as f64 - rows2 + 0.5;
-            let angle = (f64::atan2(x, y) * 128.0 / f64::consts::PI) as i16;
-
-            let within = point_in_circle(x, y, area.radius);
-            // let withininner = point_in_ellipse(inner2, outer2, x, y);
-
-            if within {
-                // && !withininner {
-                area.grid[i][j] = (angle + area.offset) % 256;
-            } else {
-                area.grid[i][j] = 0;
-            }
-        }
-    }
-    area
-}
-
-struct Area {
-    width: usize,
-    height: usize,
-    radius: f64,
-    factorx: f64,
-    offset: i16,
-    grid: Vec<Vec<i16>>,
 }
 
 fn main() {
@@ -141,5 +45,7 @@ fn main() {
         offset,
         grid,
     };
+
     draw(circle(area));
+
 }
