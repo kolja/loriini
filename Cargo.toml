@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 rand = "*"
+hex = "*"
 termion = "*"
 palette = "*"
 itertools = "*"
