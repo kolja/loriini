@@ -1,7 +1,7 @@
 
 use clap::Parser;
 use hex::FromHex;
-use palette::{FromColor, Hsl, Hsv, Srgb};
+use palette::{FromColor, Hsl, Hsv, Lch, Srgb};
 
 mod model;
 use model::Area;
@@ -30,12 +30,11 @@ struct Cli {
 
 fn main() {
     let args = Cli::parse();
-    let color_from_hex = match <[u8; 3]>::from_hex(&args.color) {
-        Ok([r,g,b]) => Hsl::from_color(
+    let color = match <[u8; 3]>::from_hex(&args.color) {
+        Ok([r,g,b]) => Lch::from_color(
             Srgb::from_components(( (r as f32)/255.0, (g as f32)/255.0, (b as f32)/255.0))),
         Err(_) => panic!("failed to decode the color {}", args.color )
     };
-    print!("{:#?}", color_from_hex);
 
     let height = args.size;
     let width = height * 2;
@@ -43,15 +42,15 @@ fn main() {
     let radius = args.radius;
     let factorx = args.factorx;
 
-    let grid = vec![vec![0; width]; height];
+    let grid = vec![vec![None; width]; height];
     let area = Area {
         width,
         height,
         radius,
         factorx,
+        color,
         grid,
     };
 
     draw(circle(area));
-
 }

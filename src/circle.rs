@@ -1,15 +1,12 @@
 
-use rand::distributions::{Distribution, Uniform};
 use crate::model::Area;
+use palette::{LabHue, Lch};
 
 fn point_in_circle(x: f64, y: f64, r: f64) -> bool {
     (x * x) + (y * y) < (r * r)
 }
 
 pub fn circle(mut area: Area) -> Area {
-
-    // let mut rng = rand::thread_rng();
-    // let die = Uniform::from(1..20);
 
     for i in 0..area.height {
         for j in 0..area.width {
@@ -20,14 +17,13 @@ pub fn circle(mut area: Area) -> Area {
             let y = i as f64 - rows2 + 0.5;
 
             let within = point_in_circle(y, x, area.radius);
-            // let withininner = point_in_ellipse(inner2, outer2, x, y);
 
             if within {
-                let angle = (f64::atan2(y, x) * 128.0 / std::f64::consts::PI) as i16;
-                // && !withininner {
-                area.grid[i][j] = angle % 256;
+                let angle = (f64::atan2(y, x) * 180.0 / std::f64::consts::PI) as f32;
+                let hue = LabHue::from_degrees(angle);
+                area.grid[i][j] = Some(Lch::new(50.0, 100.0, hue));
             } else {
-                area.grid[i][j] = 0;
+                area.grid[i][j] = None;
             }
         }
     }

@@ -4,7 +4,7 @@ use termion;
 use termion::color;
 use termion::raw::IntoRawMode;
 
-use palette::{FromColor, Hsl, Hsv, Srgb};
+use palette::{Pixel, FromColor, IntoColor, Hue, Mix, Hsl, Hsv, Lch, Srgb};
 use std::f64;
 use std::io::{stdout, Write};
 use std::iter::zip;
@@ -12,22 +12,13 @@ use itertools::Itertools;
 
 use crate::model::Area;
 
-fn term_color(color: &i16) -> termion::color::Rgb {
-    let hue = ((*color as f64) / 255.0) * 360.0;
-    let c = Hsl::new(hue, 1.0, 0.4);
-    let srgb = Srgb::from_color(c);
+fn term_color(color: &Lch) -> termion::color::Rgb {
+    let srgb = Srgb::from_color(*color);
     termion::color::Rgb(
         (srgb.red * 255.0) as u8,
         (srgb.green * 255.0) as u8,
         (srgb.blue * 255.0) as u8,
     )
-}
-
-fn mean(a: &i16, b: &i16) -> i16 {
-    let a = *a;
-    let b = *b;
-    let c = (a + b) / 2;
-    return c as i16;
 }
 
 pub fn draw(area: Area) {
@@ -38,28 +29,27 @@ pub fn draw(area: Area) {
             zip(row1.into_iter().tuples::<(_,_)>(),
                 row2.into_iter().tuples::<(_,_)>())
                 .map(|(t1,t2)| match [t1, t2] {
-                    [(0, 0), (0, 0)] => format!("{} ", color::Fg(term_color(&0))),
-                    [(0, 0), (0, d)] => format!("{}▗", color::Fg(term_color(&d))),
-                    [(0, 0), (c, 0)] => format!("{}▖", color::Fg(term_color(&c))),
-                    [(0, 0), (c, d)] => format!("{}▄", color::Fg(term_color(&mean(&c,&d)))),
-                    [(0, b), (0, 0)] => format!("{}▝", color::Fg(term_color(&b))),
-                    [(0, b), (0, d)] => format!("{}▐", color::Fg(term_color(&mean(&b,&d)))),
-                    [(0, b), (_c, 0)] => format!("{}▞", color::Fg(term_color(&b))),
-                    [(0, _b), (_c, d)] => format!("{}▟", color::Fg(term_color(&d))),
-                    [(a, 0), (0, 0)] => format!("{}▘", color::Fg(term_color(&a))),
-                    [(a, 0), (0, _d)] => format!("{}▚", color::Fg(term_color(&a))),
-                    [(a, 0), (_c, 0)] => format!("{}▌", color::Fg(term_color(&a))),
-                    [(_a, 0), (c, _d)] => format!("{}▙", color::Fg(term_color(&c))),
-                    [(a, b), (0, 0)] => format!("{}▀", color::Fg(term_color(&mean(&a,&b)))),
-                    [(_a, b), (0, _d)] => format!("{}▜", color::Fg(term_color(&b))),
-                    [(a, _b), (_c, 0)] => format!("{}▛", color::Fg(term_color(&a))),
-                    [(a, b), (c, d)] => format!(
+                    [(None, None), (None, None)] => String::from(" "),
+                    [(None, None), (None, Some(d))] => format!("{}▗", color::Fg(term_color(&d))),
+                    [(None, None), (Some(c), None)] => format!("{}▖", color::Fg(term_color(&c))),
+                    [(None, None), (Some(c), Some(d))] => format!("{}▄", color::Fg(term_color(&c.mix(&d, 0.5)))),
+                    [(None, Some(b)), (None, None)] => format!("{}▝", color::Fg(term_color(&b))),
+                    [(None, Some(b)), (None, Some(d))] => format!("{}▐", color::Fg(term_color(&b.mix(&d, 0.5)))),
+                    [(None, Some(b)), (_c, None)] => format!("{}▞", color::Fg(term_color(&b))),
+                    [(None, _b), (_c, Some(d))] => format!("{}▟", color::Fg(term_color(&d))),
+                    [(Some(a), None), (None, None)] => format!("{}▘", color::Fg(term_color(&a))),
+                    [(Some(a), None), (None, _d)] => format!("{}▚", color::Fg(term_color(&a))),
+                    [(Some(a), None), (_c, None)] => format!("{}▌", color::Fg(term_color(&a))),
+                    [(_a, None), (Some(c), _d)] => format!("{}▙", color::Fg(term_color(&c))),
+                    [(Some(a), Some(b)), (None, None)] => format!("{}▀", color::Fg(term_color(&a.mix(&b, 0.5)))),
+                    [(_a, Some(b)), (None, _d)] => format!("{}▜", color::Fg(term_color(&b))),
+                    [(Some(a), _b), (_c, None)] => format!("{}▛", color::Fg(term_color(&a))),
+                    [(Some(a), Some(b)), (Some(c), Some(d))] => format!(
                         "{}{}▄{}",
-                        color::Bg(term_color(&mean(&a, &b))),
-                        color::Fg(term_color(&mean(&c, &d))),
+                        color::Bg(term_color(&a.mix(&b, 0.5))),
+                        color::Fg(term_color(&c.mix(&d, 0.5))),
                         color::Bg(color::Reset)
                     ),
-                    _ => format!(" "),
                 })
                 .collect::<String>()
         })
