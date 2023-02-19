@@ -1,31 +1,35 @@
 
 use crate::model::Area;
-use palette::{LabHue, Lch};
+use palette::{LabHue, Hue, Lch, Hsl};
+use std::f64::consts::PI;
 
-fn point_in_circle(x: f64, y: f64, r: f64) -> bool {
-    (x * x) + (y * y) < (r * r)
+fn point_in_circle(x: f64, y: f64, r: f64, ir: f64) -> bool {
+    let x2plusy2 = (x * x) + (y * y);
+    x2plusy2 < (r * r) && x2plusy2 > (ir * ir)
 }
 
-pub fn circle(mut area: Area) -> Area {
+impl Area {
+    pub fn circle(&mut self) -> &mut Self {
 
-    for i in 0..area.height {
-        for j in 0..area.width {
-            let cols2 = area.width as f64 / 2.0;
-            let rows2 = area.height as f64 / 2.0;
+        for i in 0..self.height {
+            for j in 0..self.width {
+                let cols2 = self.width as f64 / 2.0;
+                let rows2 = self.height as f64 / 2.0;
 
-            let x = (j as f64 - cols2 + 0.5) * area.factorx;
-            let y = i as f64 - rows2 + 0.5;
+                let x = (j as f64 - cols2 + 0.5) * self.factorx;
+                let y = i as f64 - rows2 + 0.5;
 
-            let within = point_in_circle(y, x, area.radius);
+                let within = point_in_circle(y, x, self.radius, self.inner_radius);
 
-            if within {
-                let angle = (f64::atan2(y, x) * 180.0 / std::f64::consts::PI) as f32;
-                let hue = LabHue::from_degrees(angle);
-                area.grid[i][j] = Some(Lch::new(50.0, 100.0, hue));
-            } else {
-                area.grid[i][j] = None;
+                if within {
+                    let angle = (f64::atan2(y, x) * 180.0 / PI) as f32;
+                    // let hue = LabHue::from_degrees(angle);
+                    self.grid[i][j] = Some(Hsl::new(angle, 1.0, 0.5));
+                } else {
+                    self.grid[i][j] = None;
+                }
             }
         }
+       self
     }
-    area
 }
