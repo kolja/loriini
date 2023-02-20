@@ -22,10 +22,9 @@ fn term_color(color: &Hsl) -> termion::color::Rgb {
 }
 
 impl Area {
-    pub fn draw(&self) -> String {
-        // let mut stdout = stdout().into_raw_mode().unwrap();
 
-        self.grid.into_iter().tuples()
+    pub fn draw(&self) -> String {
+        self.grid.clone().into_iter().tuples()
             .map(|(row1, row2)| {
                 zip(row1.into_iter().tuples::<(_,_)>(),
                     row2.into_iter().tuples::<(_,_)>())
@@ -54,11 +53,7 @@ impl Area {
                     })
                     .collect::<String>()
             })
-            .collect::<Vec<_>>()
+            .collect::<Vec<String>>()
             .join("\r\n")
-
-        // write!(stdout, "{}\r\n", circle).expect("`write!` failed");
-
-        // stdout.flush().unwrap();
     }
 }

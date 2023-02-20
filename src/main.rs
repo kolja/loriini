@@ -14,6 +14,7 @@ use std::io::{stdout, Write};
 use termion::raw::IntoRawMode;
 
 #[derive(Parser, Debug)]
+#[clap(author="Kolja Wilcke", version="0.1", about="A console color picker")]
 struct Cli {
     // the number of rows:
     #[arg(short = 's', value_name = "Size", default_value_t = 12)]
@@ -25,8 +26,8 @@ struct Cli {
     #[arg(short = 'r', value_name = "outer radius", default_value_t = 6.0)]
     radius: f64,
 
-    #[arg(short = 'i', value_name = "inner radius", default_value_t = 4.0)]
-    inner_radius: f64,
+    #[arg(short = 'i', long, value_name = "inner radius")]
+    inner_radius: Option<f64>,
 
     #[arg(short = 'c', value_name = "color input (hex)", default_value_t = String::from("FF0000"))]
     color: String,
@@ -44,7 +45,10 @@ fn main() {
     let width = height * 2;
 
     let radius = args.radius;
-    let inner_radius = args.inner_radius;
+    let inner_radius = match args.inner_radius {
+        Some(r) => r,
+        None => radius * 0.7,
+    };
     let factorx = args.factorx;
 
     let grid = vec![vec![None; width]; height];
@@ -60,5 +64,4 @@ fn main() {
 
     let mut stdout = stdout().into_raw_mode().unwrap();
     write!(stdout, "{}\r\n", area.circle().draw() ).expect("`write!` failed");
-    // area.circle().draw();
 }
