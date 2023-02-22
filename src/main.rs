@@ -1,4 +1,6 @@
 
+#![allow(unused)]  // FIXME
+
 use clap::Parser;
 use hex::FromHex;
 use palette::{FromColor, Hsl, Hsv, Lch, Srgb};
@@ -8,9 +10,12 @@ use model::Area;
 
 mod draw;
 mod circle;
+mod triangle;
 // use circle::circle;
 
 use std::io::{stdout, Write};
+use termion::event::Key;
+use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
 #[derive(Parser, Debug)]
@@ -63,5 +68,19 @@ fn main() {
     };
 
     let mut stdout = stdout().into_raw_mode().unwrap();
-    write!(stdout, "{}\r\n", area.circle().draw() ).expect("`write!` failed");
+    write!(stdout, "{}\r\n", area.circle().triangle().draw() ).expect("`write!` failed");
+
+    for c in std::io::stdin().keys() {
+        match c.unwrap() {
+            Key::Char('q') => break,
+            Key::Char('j') => {
+                area.color.hue -= 5.0;
+            }
+            Key::Char('k') => {
+                area.color.hue += 5.0;
+            }
+            _ => {}
+        }
+        write!(stdout, "{}\r\n", area.circle().triangle().draw()).expect("write failed");
+    }
 }

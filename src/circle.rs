@@ -19,7 +19,7 @@ impl Area {
                 let x = (j as f64 - cols2 + 0.5) * self.factorx;
                 let y = i as f64 - rows2 + 0.5;
 
-                let within = point_in_circle(y, x, self.radius, self.inner_radius);
+                let within = point_in_circle(x, y, self.radius, self.inner_radius);
 
                 if within {
                     let angle = (f64::atan2(y, x) * 180.0 / PI) as f32;
