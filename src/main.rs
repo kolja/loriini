@@ -1,9 +1,7 @@
 
-#![allow(unused)]  // FIXME
-
 use clap::Parser;
 use hex::FromHex;
-use palette::{FromColor, Hsl, Hsv, Lch, Srgb};
+use palette::{FromColor, Hsl, Srgb};
 
 mod model;
 use model::Area;
@@ -11,7 +9,6 @@ use model::Area;
 mod draw;
 mod circle;
 mod triangle;
-// use circle::circle;
 
 use std::io::{stdout, Write};
 use termion::event::Key;
@@ -68,7 +65,11 @@ fn main() {
     };
 
     let mut stdout = stdout().into_raw_mode().unwrap();
-    write!(stdout, "{}\r\n", area.circle().triangle().draw() ).expect("`write!` failed");
+    write!(stdout,
+        "{}{}\r\n",
+        termion::clear::All,
+        area.circle().triangle().draw()
+    ).expect("`write!` failed");
 
     for c in std::io::stdin().keys() {
         match c.unwrap() {
@@ -81,6 +82,10 @@ fn main() {
             }
             _ => {}
         }
-        write!(stdout, "{}\r\n", area.circle().triangle().draw()).expect("write failed");
+        write!(stdout,
+            "{}{}\r\n",
+            termion::clear::All,
+            area.circle().triangle().draw()
+        ).expect("write failed");
     }
 }

@@ -1,6 +1,6 @@
 
 use crate::model::Area;
-use palette::{LabHue, Hue, Lch, Hsl};
+use palette::Hsl;
 use std::f64::consts::PI;
 
 fn point_in_circle(x: f64, y: f64, r: f64, ir: f64) -> bool {

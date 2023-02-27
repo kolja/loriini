@@ -1,10 +1,9 @@
-#![allow(unused)] // FIXME
 
 use crate::model::Area;
-use palette::{LabHue, Hue, Lch, Hsl};
-use std::cmp::max;
+use palette::Hsl;
 use std::f64::consts::PI;
 
+#[allow(dead_code)] // apparently, a0 is never used
 struct Triangle {
     a0: f64,
     a1: f64,
@@ -13,14 +12,15 @@ struct Triangle {
     p1: (f64, f64),
     p2: (f64, f64),
     side: f64,
-    height: f64
+    height: f64,
+    r: f64
 }
 
 impl Triangle {
     fn new(r: f64, phi: f64) -> Triangle {
         let a0 = phi;
-        let a1 = (phi + 120.0);
-        let a2 = (phi + 240.0);
+        let a1 = phi + 120.0;
+        let a2 = phi + 240.0;
         let p0 = (r * a0.to_radians().cos(), r * a0.to_radians().sin());
         let p1 = (r * a1.to_radians().cos(), r * a1.to_radians().sin());
         let p2 = (r * a2.to_radians().cos(), r * a2.to_radians().sin());
@@ -28,7 +28,7 @@ impl Triangle {
         let height = (side * 3.0_f64.sqrt()) / 2.0;
 
         Triangle {
-            a0, a1, a2, p0, p1, p2, side, height
+            a0, a1, a2, p0, p1, p2, side, height, r
         }
     }
 }
@@ -56,18 +56,22 @@ impl Point for (f64, f64) {
         alpha >= 0.0 && beta >= 0.0 && gamma >= 0.0
     }
 
+    // fn in_triangle_alternative(&self, t: &Triangle) -> bool {
+    //     let curve = t.r - (t.a0 + self.angle((0.0, 0.0)) * 1.5).to_radians().sin().abs() * (t.r / 2.0);
+    //     self.sum_of_squares().sqrt() < curve
+    // }
+
     fn s_and_l(&self, t: &Triangle) -> (f64, f64) {
 
-        let sat: f64;
         let dark: bool = self.diff(t.p1).sum_of_squares() < self.diff(t.p2).sum_of_squares();
 
         let a: f64 = if dark {
             let self_angle = self.angle(t.p1);
-            let total = (self_angle + t.a1 - 120.0);
+            let total = self_angle + t.a1 - 120.0;
             (t.side / 2.0) * total.to_radians().tan()
         } else {
             let self_angle = self.angle(t.p2);
-            let total = (t.a2 + self_angle + 120.0);
+            let total = t.a2 + self_angle + 120.0;
             (t.side / 2.0) * total.to_radians().tan()
         };
 
@@ -92,7 +96,7 @@ impl Point for (f64, f64) {
     }
     fn angle(&self, other: (f64, f64)) -> f64 {
         let (x, y) = self.diff(other);
-        (f64::atan2(x, y) * 180.0 / PI)
+        f64::atan2(x, y) * 180.0 / PI
     }
 }
 
@@ -114,7 +118,6 @@ impl Area {
                 if point.in_triangle(t) {
                     let (sat, lightness) = point.s_and_l(t);
                     self.grid[i][j] = Some(Hsl::new(angle as f32, sat as f32, lightness as f32));
-                    // self.grid[i][j] = Some(self.color)
                 }
             }
         }

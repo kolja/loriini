@@ -1,12 +1,8 @@
 
-#![allow(unused_imports)]
 use termion;
 use termion::color;
-use termion::raw::IntoRawMode;
 
-use palette::{Pixel, FromColor, IntoColor, Hue, Mix, Hsl, Hsv, Lch, Srgb};
-use std::f64;
-use std::io::{stdout, Write};
+use palette::{FromColor, Mix, Hsl, Srgb};
 use std::iter::zip;
 use itertools::Itertools;
 
