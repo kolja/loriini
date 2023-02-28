@@ -6,7 +6,7 @@ use palette::{FromColor, Mix, Hsl, Srgb};
 use std::iter::zip;
 use itertools::Itertools;
 
-use crate::model::Area;
+use crate::model::{Area, Bar};
 
 fn term_color(color: &Hsl) -> termion::color::Rgb {
     let srgb = Srgb::from_color(*color);
@@ -19,7 +19,7 @@ fn term_color(color: &Hsl) -> termion::color::Rgb {
 
 impl Area {
 
-    pub fn draw(&self) -> String {
+    pub fn draw(&self) -> Vec<String> {
         self.grid.clone().into_iter().tuples()
             .map(|(row1, row2)| {
                 zip(row1.into_iter().tuples::<(_,_)>(),
@@ -50,6 +50,19 @@ impl Area {
                     .collect::<String>()
             })
             .collect::<Vec<String>>()
-            .join("\r\n")
+    }
+
+    pub fn info(&self, bar: Vec<Bar>, width: u8) -> String {
+        bar.into_iter().map(|b|
+            match b {
+                Bar::Hue => {
+                    format!("{}             ", color::Fg(term_color(&self.color)))
+                },
+                Bar::Preview => {
+                    format!("{}             ", color::Fg(term_color(&self.color)))
+                },
+                _ => String::from("---"),
+            }
+        ).collect::<String>()
     }
 }

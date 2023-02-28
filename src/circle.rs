@@ -23,7 +23,6 @@ impl Area {
 
                 if within {
                     let angle = (f64::atan2(y, x) * 180.0 / PI) as f32;
-                    // let hue = LabHue::from_degrees(angle);
                     self.grid[i][j] = Some(Hsl::new(angle, 1.0, 0.5));
                 } else {
                     self.grid[i][j] = None;

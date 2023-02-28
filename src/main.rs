@@ -68,7 +68,7 @@ fn main() {
     write!(stdout,
         "{}{}\r\n",
         termion::clear::All,
-        area.circle().triangle().draw()
+        area.circle().triangle().draw().join("\r\n")
     ).expect("`write!` failed");
 
     for c in std::io::stdin().keys() {
@@ -85,7 +85,7 @@ fn main() {
         write!(stdout,
             "{}{}\r\n",
             termion::clear::All,
-            area.circle().triangle().draw()
+            area.circle().triangle().draw().join("\r\n")
         ).expect("write failed");
     }
 }

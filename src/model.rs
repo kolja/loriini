@@ -8,3 +8,14 @@ pub struct Area {
     pub color: palette::Hsl,
     pub grid: Vec<Vec<Option<palette::Hsl>>>,
 }
+
+pub enum Bar {
+    Red,
+    Green,
+    Blue,
+    Hue,
+    Lightness,
+    Saturation,
+    Alpha,
+    Preview
+}
