@@ -9,13 +9,21 @@ pub struct Area {
     pub grid: Vec<Vec<Option<palette::Hsl>>>,
 }
 
+#[allow(dead_code)] // allow for different kinds of color sliders
 pub enum Bar {
-    Red,
-    Green,
-    Blue,
+    // Red,
+    // Green,
+    // Blue,
     Hue,
     Lightness,
     Saturation,
     Alpha,
     Preview
+}
+
+pub enum EditMode {
+    Hue,
+    Alpha,
+    Saturation,
+    Lightness
 }
