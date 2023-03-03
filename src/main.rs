@@ -1,6 +1,7 @@
 use clap::Parser;
 use hex::FromHex;
 use palette::{FromColor, Hsl, Srgb};
+use cli_clipboard;
 
 mod model;
 use model::{Area, Bar, EditMode};
@@ -90,6 +91,15 @@ fn main() {
             Key::Char('a') => edit_mode = EditMode::Alpha,
             Key::Char('l') => edit_mode = EditMode::Lightness,
             Key::Char('s') => edit_mode = EditMode::Saturation,
+            Key::Char('y') => {
+                let srgb = Srgb::from_color(area.color);
+                let hex = format!(
+                    "{:02X}{:02X}{:02X}",
+                    (srgb.red * 255.0) as u8,
+                    (srgb.green * 255.0) as u8,
+                    (srgb.blue * 255.0) as u8);
+                    cli_clipboard::set_contents(hex).unwrap();
+            },
             Key::Char('j') => match edit_mode {
                 EditMode::Hue => area.color.hue -= 5.0,
                 EditMode::Alpha => todo!(),
