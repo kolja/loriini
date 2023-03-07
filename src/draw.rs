@@ -5,7 +5,7 @@ use itertools::Itertools;
 use palette::{FromColor, Hsl, Mix, Srgb};
 use std::iter::zip;
 
-use crate::model::{Area, Bar};
+use crate::model::{Area, Slider};
 
 fn term_color(color: &Hsl) -> termion::color::Rgb {
     let srgb = Srgb::from_color(*color);
@@ -27,7 +27,21 @@ fn hex_color(color: &Hsl) -> String {
 }
 
 impl Area {
+
     pub fn draw(&self) -> Vec<String> {
+        let colorwheel = self.draw_colorwheel();
+        if self.show_info {
+            colorwheel
+                .iter()
+                .zip(self.draw_sliders().iter())
+                .map(|(cw, sl)| { format!("{}{}", cw, sl) })
+                .collect::<Vec<String>>()
+        } else {
+            colorwheel
+        }
+    }
+
+    fn draw_colorwheel(&self) -> Vec<String> {
         self.grid
             .clone()
             .into_iter()
@@ -71,65 +85,47 @@ impl Area {
             .collect::<Vec<String>>()
     }
 
-    pub fn info(&self, bars: Vec<Bar>, width: u8) -> Vec<String> {
-        let lines_before: usize = (self.height as f32 / 2.0).ceil() as usize - (2 * bars.len() - 1);
+    fn draw_sliders(&self) -> Vec<String> {
+        let lines_before: usize = (self.height as f32 / 2.0).ceil() as usize - (2 * self.sliders.len() - 1);
         let before = vec![String::from(""); lines_before].into_iter();
-        let spacer = vec![String::from(""); bars.len() - 1];
+        let spacer = vec![String::from(""); self.sliders.len() - 1];
 
-        let step = 1.0 / (width * 2) as f32;
-        let (h, s, l) = self.color.into_components();
-        let marker_color = Hsl::new(h + 180.0, s, (l + 0.2).clamp(0.0,1.0));
-
-        let bars = Itertools::interleave(
-            bars.into_iter().map(|b| match b {
-                Bar::Hue => {
+        let sliders = self.sliders.iter().map(|slider|
+            match slider {
+                Slider::Hue(Some(_data)) => {
                     todo!()
-                }
-                Bar::Alpha => {
+                },
+                Slider::Alpha(Some(_data)) => {
                     todo!()
-                }
-                Bar::Saturation => {
-                    let bar = (0..width).map(|i| {
-                        let c1 = if (s * width as f32 * 2.0).floor() as u8 == i * 2 {
-                            marker_color
-                        } else {
-                            Hsl::new(h, i as f32 * step * 2.0, l)
-                        };
-                        let c2 = if (s * width as f32 * 2.0).floor() as u8 + 1 == i * 2 {
-                            marker_color
-                        } else {
-                            Hsl::new(h, i as f32 * step * 2.0 + step, l)
-                        };
-
+                },
+                Slider::Saturation(Some(data)) => {
+                    print!("{}|colors ", data.colors.len());
+                    let bar = data.colors.chunks(2).map(|cnk| {
+                        let c1 = cnk[0];
+                        let c2 = cnk[1];
                         format!(
                             "{}{}▐",
                             Bg(term_color(&c1)),
                             Fg(term_color(&c2))
-                        )
-                    }).collect::<String>();
+                        )}
+                    ).collect::<String>();
+
                     format!("{}{}", bar, Bg(Reset))
-                }
-                Bar::Lightness => {
-                    let bar = (0..width).map(|i| {
-                        let c1 = if (l * width as f32 * 2.0).floor() as u8 == i * 2 {
-                            marker_color
-                        } else {
-                            Hsl::new(h, s, i as f32 * step * 2.0)
-                        };
-                        let c2 = if (l * width as f32 * 2.0).floor() as u8 + 1 == i * 2 {
-                            marker_color
-                        } else {
-                            Hsl::new(h, s, i as f32 * step * 2.0 + step)
-                        };
+                },
+                Slider::Lightness(Some(data)) => {
+                    let bar = data.colors.chunks(2).map(|cnk| {
+                        let c1 = cnk[0];
+                        let c2 = cnk[1];
                         format!(
                             "{}{}▐",
                             Bg(term_color(&c1)),
                             Fg(term_color(&c2))
-                        )
-                    }).collect::<String>();
+                        )}
+                    ).collect::<String>();
+
                     format!("{}{}", bar, Bg(Reset))
-                }
-                Bar::Preview => {
+                },
+                Slider::Preview(Some(width)) => {
                     let mut text_color: Hsl = Hsl::from_color(self.color);
                     if self.color.lightness < 0.3 {
                         text_color.lightness += 0.3;
@@ -142,13 +138,13 @@ impl Area {
                         Bg(term_color(&self.color)),
                         Fg(term_color(&text_color)),
                         hex_color(&self.color),
-                        " ".repeat(width as usize - 8),
+                        " ".repeat(*width as usize - 8),
                         Bg(Reset)
                     )
                 }
-            }),
-            spacer,
-        );
-        before.chain(bars).collect()
+                _ => "".to_string()
+        });
+
+        before.chain(Itertools::interleave(sliders, spacer)).collect()
     }
 }

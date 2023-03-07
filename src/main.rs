@@ -4,11 +4,12 @@ use palette::{FromColor, Hsl, Srgb};
 use cli_clipboard;
 
 mod model;
-use model::{Area, Bar, EditMode};
+use model::{Area, Slider, EditMode};
 
 mod circle;
 mod draw;
 mod triangle;
+mod sliders;
 
 use std::io::{stdout, Write};
 use termion::event::Key;
@@ -59,7 +60,7 @@ fn main() {
         None => radius * 0.7,
     };
     let factorx = args.factorx;
-    let mut show_info: bool = false;
+    let show_info: bool = false;
     let mut edit_mode: EditMode = EditMode::Hue;
 
     let grid = vec![vec![None; width]; height];
@@ -71,6 +72,8 @@ fn main() {
         factorx,
         color,
         grid,
+        show_info,
+        sliders: Vec::new()
     };
 
     let mut stdout = stdout().into_raw_mode().unwrap();
@@ -86,7 +89,7 @@ fn main() {
         let (h, s, l) = area.color.into_components();
         match c.unwrap() {
             Key::Char('q') => break,
-            Key::Char('i') => show_info = !show_info,
+            Key::Char('i') => area.show_info = !area.show_info,
             Key::Char('h') => edit_mode = EditMode::Hue,
             Key::Char('a') => edit_mode = EditMode::Alpha,
             Key::Char('l') => edit_mode = EditMode::Lightness,
@@ -114,23 +117,14 @@ fn main() {
             },
             _ => {}
         }
-        let out: String = if show_info {
-            let circle = area.circle().triangle();
-            let circle_strings = circle.draw();
-            let bars = circle.info(vec![Bar::Lightness, Bar::Saturation, Bar::Preview], 20);
-            circle_strings
-                .iter()
-                .zip(bars.iter())
-                .fold(String::new(), |acc, (c, b)| {
-                    if acc.is_empty() {
-                        format!("{}{}", c, b)
-                    } else {
-                        format!("{}{}{}", acc, "\r\n", format!("{}{}", c, b))
-                    }
-                })
-        } else {
-            area.circle().triangle().draw().join("\r\n")
-        };
+
+        let out = area
+            .circle()
+            .triangle()
+            .sliders(vec![Slider::Lightness(None), Slider::Saturation(None), Slider::Preview(None)], 20)
+            .draw()
+            .join("\r\n");
+
         write!(stdout, "{}{}\r\n", termion::clear::All, out).expect("write failed");
     }
 }

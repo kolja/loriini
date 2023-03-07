@@ -7,18 +7,26 @@ pub struct Area {
     pub factorx: f64,
     pub color: palette::Hsl,
     pub grid: Vec<Vec<Option<palette::Hsl>>>,
+    pub show_info: bool,
+    pub sliders: Vec<Slider>
+}
+
+pub struct SliderData {
+    pub colors: Vec<palette::Hsl>,
+    pub width: u8,
+    pub pos: u8
 }
 
 #[allow(dead_code)] // allow for different kinds of color sliders
-pub enum Bar {
-    // Red,
+pub enum Slider {
+    // Red
     // Green,
     // Blue,
-    Hue,
-    Lightness,
-    Saturation,
-    Alpha,
-    Preview
+    Hue(Option<SliderData>),
+    Lightness(Option<SliderData>),
+    Saturation(Option<SliderData>),
+    Alpha(Option<SliderData>),
+    Preview(Option<u8>)
 }
 
 pub enum EditMode {
