@@ -86,7 +86,7 @@ impl Area {
     }
 
     fn draw_sliders(&self) -> Vec<String> {
-        let lines_before: usize = (self.height as f32 / 2.0).ceil() as usize - (2 * self.sliders.len() - 1);
+        let lines_before: usize = self.height / 2 - (2 * self.sliders.len() - 1);
         let before = vec![String::from(""); lines_before].into_iter();
         let spacer = vec![String::from(""); self.sliders.len() - 1];
 
@@ -99,7 +99,6 @@ impl Area {
                     todo!()
                 },
                 Slider::Saturation(Some(data)) => {
-                    print!("{}|colors ", data.colors.len());
                     let bar = data.colors.chunks(2).map(|cnk| {
                         let c1 = cnk[0];
                         let c2 = cnk[1];
