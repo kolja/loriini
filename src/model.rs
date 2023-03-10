@@ -1,4 +1,6 @@
 
+use crate::editmode::EditMode;
+
 pub struct Area {
     pub width: usize,
     pub height: usize,
@@ -8,6 +10,7 @@ pub struct Area {
     pub color: palette::Hsl,
     pub grid: Vec<Vec<Option<palette::Hsl>>>,
     pub show_info: bool,
+    pub edit_mode: EditMode,
     pub sliders: Vec<Slider>
 }
 
@@ -29,9 +32,3 @@ pub enum Slider {
     Preview(Option<u8>)
 }
 
-pub enum EditMode {
-    Hue,
-    Alpha,
-    Saturation,
-    Lightness
-}

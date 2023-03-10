@@ -6,6 +6,7 @@ use palette::{FromColor, Hsl, Mix, Srgb};
 use std::iter::zip;
 
 use crate::model::{Area, Slider};
+use crate::editmode::Mode;
 
 fn term_color(color: &Hsl) -> termion::color::Rgb {
     let srgb = Srgb::from_color(*color);
@@ -28,7 +29,15 @@ fn hex_color(color: &Hsl) -> String {
 
 impl Area {
 
-    pub fn draw(&self) -> Vec<String> {
+    fn selected(is_selected: bool, color: Hsl) -> String {
+        if is_selected {
+            format!("{}▕", Fg(term_color(&color)))
+        } else {
+            " ".to_string()
+        }
+    }
+
+    pub fn draw(&mut self) -> Vec<String> {
         let colorwheel = self.draw_colorwheel();
         if self.show_info {
             colorwheel
@@ -41,7 +50,7 @@ impl Area {
         }
     }
 
-    fn draw_colorwheel(&self) -> Vec<String> {
+    fn draw_colorwheel(&mut self) -> Vec<String> {
         self.grid
             .clone()
             .into_iter()
@@ -85,7 +94,7 @@ impl Area {
             .collect::<Vec<String>>()
     }
 
-    fn draw_sliders(&self) -> Vec<String> {
+    fn draw_sliders(&mut self) -> Vec<String> {
         let lines_before: usize = self.height / 2 - (2 * self.sliders.len() - 1);
         let before = vec![String::from(""); lines_before].into_iter();
         let spacer = vec![String::from(""); self.sliders.len() - 1];
@@ -109,7 +118,8 @@ impl Area {
                         )}
                     ).collect::<String>();
 
-                    format!("{}{}", bar, Bg(Reset))
+                    let sel = Area::selected(self.edit_mode.is_active(Mode::Saturation), Hsl::new(1.0,1.0,1.0));
+                    format!("{}{}{}", sel, bar, Bg(Reset))
                 },
                 Slider::Lightness(Some(data)) => {
                     let bar = data.colors.chunks(2).map(|cnk| {
@@ -122,7 +132,8 @@ impl Area {
                         )}
                     ).collect::<String>();
 
-                    format!("{}{}", bar, Bg(Reset))
+                    let sel = Area::selected(self.edit_mode.is_active(Mode::Lightness), Hsl::new(1.0,1.0,1.0));
+                    format!("{}{}{}", sel, bar, Bg(Reset))
                 },
                 Slider::Preview(Some(width)) => {
                     let mut text_color: Hsl = Hsl::from_color(self.color);
@@ -132,10 +143,12 @@ impl Area {
                         text_color.lightness -= 0.3;
                     }
 
+                    let sel = Area::selected(self.edit_mode.is_active(Mode::Hue), Hsl::new(1.0,1.0,1.0));
                     format!(
-                        "{}{} #{}{}{}",
-                        Bg(term_color(&self.color)),
+                        "{}{}{} #{}{}{}",
+                        sel,
                         Fg(term_color(&text_color)),
+                        Bg(term_color(&self.color)),
                         hex_color(&self.color),
                         " ".repeat(*width as usize - 8),
                         Bg(Reset)

@@ -4,12 +4,15 @@ use palette::{FromColor, Hsl, Srgb};
 use cli_clipboard;
 
 mod model;
-use model::{Area, Slider, EditMode};
+use model::{Area, Slider};
 
 mod circle;
 mod draw;
 mod triangle;
 mod sliders;
+
+mod editmode;
+use editmode::{EditMode, Mode};
 
 use std::io::{stdout, Write};
 use termion::event::Key;
@@ -61,7 +64,6 @@ fn main() {
     };
     let factorx = args.factorx;
     let show_info: bool = false;
-    let mut edit_mode: EditMode = EditMode::Hue;
 
     let grid = vec![vec![None; width]; height];
     let mut area = Area {
@@ -71,8 +73,9 @@ fn main() {
         inner_radius,
         factorx,
         color,
-        grid,
         show_info,
+        edit_mode: EditMode { modes: vec![Mode::Hue, Mode::Lightness, Mode::Saturation] },
+        grid,
         sliders: Vec::new()
     };
 
@@ -90,10 +93,8 @@ fn main() {
         match c.unwrap() {
             Key::Char('q') => break,
             Key::Char('i') => area.show_info = !area.show_info,
-            Key::Char('h') => edit_mode = EditMode::Hue,
-            Key::Char('a') => edit_mode = EditMode::Alpha,
-            Key::Char('l') => edit_mode = EditMode::Lightness,
-            Key::Char('s') => edit_mode = EditMode::Saturation,
+            Key::Char('j') | Key::Down => area.edit_mode.next(),
+            Key::Char('k') | Key::Up => area.edit_mode.previous(),
             Key::Char('y') => {
                 let srgb = Srgb::from_color(area.color);
                 let hex = format!(
@@ -103,17 +104,17 @@ fn main() {
                     (srgb.blue * 255.0) as u8);
                     cli_clipboard::set_contents(hex).unwrap();
             },
-            Key::Char('j') => match edit_mode {
-                EditMode::Hue => area.color.hue -= 5.0,
-                EditMode::Alpha => todo!(),
-                EditMode::Lightness => area.color = Hsl::new(h, s, (l - 0.05).clamp(0.0, 1.0)),
-                EditMode::Saturation => area.color = Hsl::new(h, (s - 0.05).clamp(0.0, 1.0), l),
+            Key::Char('h') | Key::Left => match area.edit_mode.active() {
+                Mode::Hue => area.color.hue -= 5.0,
+                // Mode::Alpha => todo!(),
+                Mode::Lightness => area.color = Hsl::new(h, s, (l - 0.05).clamp(0.0, 1.0)),
+                Mode::Saturation => area.color = Hsl::new(h, (s - 0.05).clamp(0.0, 1.0), l),
             },
-            Key::Char('k') => match edit_mode {
-                EditMode::Hue => area.color.hue += 5.0,
-                EditMode::Alpha => todo!(),
-                EditMode::Lightness => area.color = Hsl::new(h, s, (l + 0.05).clamp(0.0, 1.0)),
-                EditMode::Saturation => area.color = Hsl::new(h, (s + 0.05).clamp(0.0, 1.0), l),
+            Key::Char('l') | Key::Right => match area.edit_mode.active() {
+                Mode::Hue => area.color.hue += 5.0,
+                // Mode::Alpha => todo!(),
+                Mode::Lightness => area.color = Hsl::new(h, s, (l + 0.05).clamp(0.0, 1.0)),
+                Mode::Saturation => area.color = Hsl::new(h, (s + 0.05).clamp(0.0, 1.0), l),
             },
             _ => {}
         }
