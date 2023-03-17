@@ -84,7 +84,9 @@ fn main() {
         stdout,
         "{}{}\r\n",
         termion::clear::All,
-        area.circle().triangle().draw().join("\r\n")
+        area.circle().triangle()
+            .sliders(vec![Slider::Lightness(None), Slider::Saturation(None), Slider::Preview(None)], 20)
+            .draw().join("\r\n")
     )
     .expect("`write!` failed");
 

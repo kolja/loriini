@@ -13,3 +13,4 @@ palette = "*"
 itertools = "*"
 clap = {version = "*", features = ["derive"]}
 cli-clipboard = "0.4.0"
+
