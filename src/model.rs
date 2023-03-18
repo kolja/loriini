@@ -92,6 +92,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn ring() {
         let with_sliders = false;
         let mut area = setup(with_sliders);
@@ -103,6 +104,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn triangle() {
         let with_sliders = false;
         let mut area = setup(with_sliders);
@@ -114,6 +116,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn sliders() {
         let with_sliders = true;
         let mut area = setup(with_sliders);

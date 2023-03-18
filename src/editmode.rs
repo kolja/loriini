@@ -33,3 +33,26 @@ impl EditMode {
     }
 
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::EditMode;
+    use crate::Mode;
+
+    #[test]
+    fn edit_mode_next() {
+        let modes = vec![Mode::Hue, Mode::Lightness, Mode::Saturation];
+        let mut edit_mode = EditMode {modes};
+        edit_mode.next();
+        assert!(edit_mode.is_active(Mode::Lightness));
+    }
+
+    #[test]
+    fn edit_mode_previous() {
+        let modes = vec![Mode::Hue, Mode::Lightness, Mode::Saturation];
+        let mut edit_mode = EditMode {modes};
+        edit_mode.previous();
+        assert!(edit_mode.is_active(Mode::Saturation));
+    }
+}
