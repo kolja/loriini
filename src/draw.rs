@@ -8,22 +8,14 @@ use std::iter::zip;
 use crate::model::{Area, Slider};
 use crate::editmode::Mode;
 
+use crate::helpers;
+
 fn term_color(color: &Hsl) -> termion::color::Rgb {
     let srgb = Srgb::from_color(*color);
     termion::color::Rgb(
         (srgb.red * 255.0) as u8,
         (srgb.green * 255.0) as u8,
         (srgb.blue * 255.0) as u8,
-    )
-}
-
-fn hex_color(color: &Hsl) -> String {
-    let srgb = Srgb::from_color(*color);
-    format!(
-        "{:02X}{:02X}{:02X}",
-        (srgb.red * 255.0) as u8,
-        (srgb.green * 255.0) as u8,
-        (srgb.blue * 255.0) as u8
     )
 }
 
@@ -149,7 +141,7 @@ impl Area {
                         sel,
                         Fg(term_color(&text_color)),
                         Bg(term_color(&self.color)),
-                        hex_color(&self.color),
+                        helpers::hsl_to_hex(&self.color),
                         " ".repeat(*width as usize - 8),
                         Bg(Reset)
                     )

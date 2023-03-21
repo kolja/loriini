@@ -1,5 +1,4 @@
 use clap::Parser;
-use hex::FromHex;
 use palette::{FromColor, Hsl, Srgb};
 use cli_clipboard;
 
@@ -10,6 +9,7 @@ mod circle;
 mod draw;
 mod triangle;
 mod sliders;
+mod helpers;
 
 mod editmode;
 use editmode::{EditMode, Mode};
@@ -22,7 +22,7 @@ use termion::raw::IntoRawMode;
 #[derive(Parser, Debug)]
 #[clap(
     author = "Kolja Wilcke",
-    version = "0.1",
+    version = "0.1.3",
     about = "A console color picker"
 )]
 struct Cli {
@@ -45,14 +45,7 @@ struct Cli {
 
 fn main() {
     let args = Cli::parse();
-    let color = match <[u8; 3]>::from_hex(&args.color) {
-        Ok([r, g, b]) => Hsl::from_color(Srgb::from_components((
-            (r as f32) / 255.0,
-            (g as f32) / 255.0,
-            (b as f32) / 255.0,
-        ))),
-        Err(_) => panic!("failed to decode the color {}", args.color),
-    };
+    let color = helpers::hex_to_hsl(&args.color);
 
     let height = args.size;
     let width = height * 2;
