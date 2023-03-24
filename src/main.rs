@@ -44,6 +44,7 @@ struct Cli {
 }
 
 fn main() {
+
     let args = Cli::parse();
     let color = helpers::hex_to_hsl(&args.color);
 
@@ -73,19 +74,26 @@ fn main() {
     };
 
     let mut stdout = stdout().into_raw_mode().unwrap();
-    write!(
-        stdout,
-        "{}{}\r\n",
-        termion::clear::All,
-        area.circle().triangle()
-            .sliders(vec![Slider::Lightness(None), Slider::Saturation(None), Slider::Preview(None)], 20)
-            .draw().join("\r\n")
-    )
-    .expect("`write!` failed");
 
-    for c in std::io::stdin().keys() {
+    loop {
+
+        write!(
+            stdout,
+            "{}{}\r\n",
+            termion::clear::All,
+            area.circle()
+                .triangle()
+                .sliders(vec![Slider::Lightness(None), Slider::Saturation(None), Slider::Preview(None)], 20)
+                .draw()
+                .join("\r\n")
+        ).expect("`write!` failed");
+
         let (h, s, l) = area.color.into_components();
-        match c.unwrap() {
+        let key = match std::io::stdin().keys().next() {
+            Some(Ok(input)) => input,
+            _ => break,
+        };
+        match key {
             Key::Char('q') => break,
             Key::Char('i') => area.show_info = !area.show_info,
             Key::Char('j') | Key::Down => area.edit_mode.next(),
@@ -113,14 +121,5 @@ fn main() {
             },
             _ => {}
         }
-
-        let out = area
-            .circle()
-            .triangle()
-            .sliders(vec![Slider::Lightness(None), Slider::Saturation(None), Slider::Preview(None)], 20)
-            .draw()
-            .join("\r\n");
-
-        write!(stdout, "{}{}\r\n", termion::clear::All, out).expect("write failed");
     }
 }
