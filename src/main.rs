@@ -55,7 +55,7 @@ fn main() {
         None => radius * 0.7,
     };
     let factorx = args.factorx;
-    let show_info: bool = false;
+    let show_info: bool = true;
 
     let area = Area {
         width,
