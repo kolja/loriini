@@ -1,5 +1,5 @@
-use palette::{FromColor, Hsl, Srgb};
 use cli_clipboard;
+use palette::{FromColor, Hsl, Srgb};
 
 use std::io::{stdout, Write};
 
@@ -7,11 +7,11 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
-use crate::model::{Area, Slider};
 use crate::editmode::Mode;
+use crate::model::{Area, Slider};
 
-use std::fs::{File, OpenOptions};
 use crate::helpers;
+use std::fs::{File, OpenOptions};
 
 pub struct Loriini {
     pub area: Area,
@@ -19,7 +19,7 @@ pub struct Loriini {
 
 impl Loriini {
     pub fn new(area: Area) -> Loriini {
-        Loriini {  area }
+        Loriini { area }
     }
 
     fn respond(file: &mut File, payload: String) -> Result<(), std::io::Error> {
@@ -31,13 +31,17 @@ impl Loriini {
     }
 
     pub fn keyboard_input(&mut self) {
-
         let area = &mut self.area;
-        
-        let mut file = OpenOptions::new()
-            .write(true)
-            .open("/tmp/loriini")
-            .expect("Failed to open named pipe for writing");
+
+        let mut pipe: Option<&mut File> = None;
+
+        if let Some(pipe_path) = &area.pipe {
+            let file = OpenOptions::new()
+                .write(true)
+                .open(pipe_path)
+                .expect("Failed to open named pipe for writing");
+            pipe = Some(Box::leak(Box::new(file)));
+        }
 
         let mut stdout = stdout().into_raw_mode().unwrap();
         loop {
@@ -47,10 +51,18 @@ impl Loriini {
                 termion::clear::All,
                 area.circle()
                     .triangle()
-                    .sliders(vec![Slider::Lightness(None), Slider::Saturation(None), Slider::Preview(None)], 20)
+                    .sliders(
+                        vec![
+                            Slider::Lightness(None),
+                            Slider::Saturation(None),
+                            Slider::Preview(None)
+                        ],
+                        20
+                    )
                     .draw()
                     .join("\r\n")
-            ).expect("`write!` failed");
+            )
+            .expect("`write!` failed");
 
             let (h, s, l) = area.color.into_components();
             let key = match std::io::stdin().keys().next() {
@@ -68,9 +80,10 @@ impl Loriini {
                         "{:02X}{:02X}{:02X}",
                         (srgb.red * 255.0) as u8,
                         (srgb.green * 255.0) as u8,
-                        (srgb.blue * 255.0) as u8);
-                        cli_clipboard::set_contents(hex).unwrap();
-                },
+                        (srgb.blue * 255.0) as u8
+                    );
+                    cli_clipboard::set_contents(hex).unwrap();
+                }
                 Key::Char('h') | Key::Left => {
                     match area.edit_mode.active() {
                         Mode::Hue => area.color.hue -= 5.0,
@@ -79,7 +92,6 @@ impl Loriini {
                         Mode::Saturation => area.color = Hsl::new(h, (s - 0.05).clamp(0.0, 1.0), l),
                     }
                 }
-                ,
                 Key::Char('l') | Key::Right => {
                     match area.edit_mode.active() {
                         Mode::Hue => area.color.hue += 5.0,
@@ -91,7 +103,13 @@ impl Loriini {
                 _ => {}
             }
 
-            Self::respond(&mut file, helpers::hsl_to_hex(&area.color)).unwrap();
+            if let Some(pipe) = &mut pipe {
+                Self::respond(
+                    pipe,
+                    helpers::hsl_to_hex(&area.color),
+                )
+                .unwrap();
+            }
         }
     }
 }

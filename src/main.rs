@@ -39,6 +39,9 @@ struct Cli {
 
     #[arg(short = 'c', value_name = "color input (hex)", default_value_t = String::from("FF0000"))]
     color: String,
+
+    #[arg(short = 'p', long, value_name = "pipe", )]
+    pipe: Option<String>,
 }
 
 fn main() {
@@ -56,6 +59,7 @@ fn main() {
     };
     let factorx = args.factorx;
     let show_info: bool = true;
+    let pipe = args.pipe;
 
     let area = Area {
         width,
@@ -65,6 +69,7 @@ fn main() {
         factorx,
         color,
         show_info,
+        pipe,
         edit_mode: EditMode { modes: vec![Mode::Hue, Mode::Lightness, Mode::Saturation] },
         grid: vec![vec![None; width]; height],
         sliders: Vec::new()
@@ -72,5 +77,4 @@ fn main() {
 
     let mut loriini = Loriini::new(area);
     loriini.keyboard_input();
-    // loriini.open_channel();
 }

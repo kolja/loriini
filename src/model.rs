@@ -11,7 +11,8 @@ pub struct Area {
     pub grid: Vec<Vec<Option<palette::Hsl>>>,
     pub show_info: bool,
     pub edit_mode: EditMode,
-    pub sliders: Vec<Slider>
+    pub sliders: Vec<Slider>,
+    pub pipe: Option<String>
 }
 
 pub struct SliderData {
@@ -60,6 +61,7 @@ mod tests {
         let radius = 6.0;
         let inner_radius = radius * 0.7;
         let factorx = 0.5;
+        let pipe = None;
 
         let grid = vec![vec![None; width]; height];
 
@@ -73,7 +75,8 @@ mod tests {
             show_info,
             edit_mode: EditMode { modes: vec![Mode::Hue, Mode::Lightness, Mode::Saturation] },
             grid,
-            sliders: Vec::new()
+            sliders: Vec::new(),
+            pipe
         }
     }
 
