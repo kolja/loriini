@@ -34,6 +34,7 @@ tar -xf loriini-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/bin
 | -r                 | **outer radius** &mdash; the radius of the color wheel<br/>It should be half the size to cover all the available area.   | 6      |
 | -i, --inner&#8209;radius | **inner radius** &mdash; the difference between outer radius and inner radius define the width of the color wheel. Zero will give you a solid circle | radius&nbsp;*&nbsp;0.7 |
 | -c                 | Initial **color**, when started (as a hex string) | FF0000      |
+| -p, --pipe         | if set (e.g. to /tmp/loriini), output the selected color to named pipe with every interaction |           |
 | -h, --help         | print **help**                |           |
 | -v, --version      | print **version**             |           |
 
