@@ -51,6 +51,10 @@ Once you have started it, you can use vim-style keybindings to change your color
 | y     | **"yank"**<br/> "yank" (copy) the selected color to the clipboard |
 | q     | **quit** |
 
+## Neovim integration
+
+There is a neovim integration for Loriini at [kolja/loriini.nvim](https://github.com/kolja/loriini.nvim)
+
 ## demo
 
 https://user-images.githubusercontent.com/28293/226331681-3c681525-68e9-4d5d-8c40-343370e9e555.mov
