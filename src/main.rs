@@ -20,7 +20,7 @@ use editmode::{EditMode, Mode};
 #[derive(Parser, Debug)]
 #[clap(
     author = "Kolja Wilcke",
-    version = "0.1.4",
+    version = "0.1.5",
     about = "A console color picker"
 )]
 struct Cli {

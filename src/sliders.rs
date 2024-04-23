@@ -1,6 +1,7 @@
 
-use crate::model::{Area, Slider, SliderData};
-use palette::Hsl;
+use crate::model::{Area, Slider, SliderData, PreviewData};
+use palette::{Hsl, FromColor, Shade};
+use palette::luma::Luma;
 
 impl Area {
     pub fn sliders(&mut self, sliders: Vec<Slider>, width: u8) -> &mut Self {
@@ -48,7 +49,26 @@ impl Area {
                 };
                 Slider::Lightness(Some(data))
             },
-            Slider::Preview(_) => { Slider::Preview(Some(width)) }
+            Slider::Preview(_) => { 
+                let mut text_color: Hsl = Hsl::from_color(self.color);
+                let luma: Luma = Luma::from_color(self.color);
+                let mut contrast: f32 = 0.0;
+                while contrast.abs() < 0.2 {
+                    if luma.luma < 0.3 {
+                        text_color = text_color.lighten(0.2);
+                    } else {
+                        text_color = text_color.darken(0.2);
+                    }
+                    let text_luma: Luma = Luma::from_color(text_color);
+                    contrast = luma.luma - text_luma.luma;
+                }
+                let data = PreviewData {
+                    bgcolor: self.color,
+                    textcolor: text_color,
+                    width
+                };
+                Slider::Preview(Some(data))
+            }
         }).collect::<Vec<Slider>>();
         self
     }

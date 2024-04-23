@@ -20,6 +20,11 @@ pub struct SliderData {
     pub width: u8,
     pub pos: u8
 }
+pub struct PreviewData {
+    pub bgcolor: palette::Hsl,
+    pub textcolor: palette::Hsl,
+    pub width: u8
+}
 
 #[allow(dead_code)] // allow for different kinds of color sliders
 pub enum Slider {
@@ -30,7 +35,7 @@ pub enum Slider {
     Lightness(Option<SliderData>),
     Saturation(Option<SliderData>),
     Alpha(Option<SliderData>),
-    Preview(Option<u8>)
+    Preview(Option<PreviewData>)
 }
 
 #[cfg(test)]

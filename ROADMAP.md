@@ -1,7 +1,7 @@
 
 # Ideas for future improvements
 
-- [ ] take current color into account when determining the point when to switch text from light to dark
+- [x] take current color into account when determining the point when to switch text from light to dark
 - [ ] add flake.nix file with package definition
 - [ ] rotate the color wheel in larger steps (e.g, when shift is pressed)
 - [ ] Transparency slider

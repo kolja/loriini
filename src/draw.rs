@@ -2,8 +2,7 @@ use termion;
 use termion::color::{Bg, Fg, Reset};
 
 use itertools::Itertools;
-use palette::{FromColor, Hsl, Mix, Srgb, Shade };
-use palette::luma::Luma;
+use palette::{FromColor, Hsl, Mix, Srgb };
 use std::iter::zip;
 
 use crate::model::{Area, Slider};
@@ -128,28 +127,16 @@ impl Area {
                     let sel = Area::selected(self.edit_mode.is_active(Mode::Lightness), Hsl::new(1.0,1.0,1.0));
                     format!("{}{}{}", sel, bar, Bg(Reset))
                 },
-                Slider::Preview(Some(width)) => {
-                    let mut text_color: Hsl = Hsl::from_color(self.color);
-                    let luma: Luma = Luma::from_color(self.color);
-                    let mut contrast: f32 = 0.0;
-                    while contrast.abs() < 0.2 {
-                        if luma.luma < 0.3 {
-                            text_color = text_color.lighten(0.2);
-                        } else {
-                            text_color = text_color.darken(0.2);
-                        }
-                        let text_luma: Luma = Luma::from_color(text_color);
-                        contrast = luma.luma - text_luma.luma;
-                    }
+                Slider::Preview(Some(data)) => {
 
                     let sel = Area::selected(self.edit_mode.is_active(Mode::Hue), Hsl::new(1.0,1.0,1.0));
                     format!(
                         "{}{}{} #{}{}{}",
                         sel,
-                        Fg(term_color(&text_color)),
-                        Bg(term_color(&self.color)),
-                        helpers::hsl_to_hex(&self.color),
-                        " ".repeat(*width as usize - 8),
+                        Fg(term_color(&data.textcolor)),
+                        Bg(term_color(&data.bgcolor)),
+                        helpers::hsl_to_hex(&data.bgcolor),
+                        " ".repeat(data.width as usize - 8),
                         Bg(Reset)
                     )
                 }
