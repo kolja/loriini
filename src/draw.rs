@@ -2,7 +2,7 @@ use termion;
 use termion::color::{Bg, Fg, Reset};
 
 use itertools::Itertools;
-use palette::{FromColor, Hsl, Mix, Srgb, LinLuma, Shade };
+use palette::{FromColor, Hsl, Mix, Srgb, Shade };
 use palette::luma::Luma;
 use std::iter::zip;
 
@@ -130,11 +130,16 @@ impl Area {
                 },
                 Slider::Preview(Some(width)) => {
                     let mut text_color: Hsl = Hsl::from_color(self.color);
-                    let luma: LinLuma = Luma::from_color(self.color); 
-                    if luma.luma < 0.3 {
-                        text_color = text_color.lighten(0.5);
-                    } else {
-                        text_color = text_color.darken(0.5);
+                    let luma: Luma = Luma::from_color(self.color);
+                    let mut contrast: f32 = 0.0;
+                    while contrast.abs() < 0.2 {
+                        if luma.luma < 0.3 {
+                            text_color = text_color.lighten(0.2);
+                        } else {
+                            text_color = text_color.darken(0.2);
+                        }
+                        let text_luma: Luma = Luma::from_color(text_color);
+                        contrast = luma.luma - text_luma.luma;
                     }
 
                     let sel = Area::selected(self.edit_mode.is_active(Mode::Hue), Hsl::new(1.0,1.0,1.0));
