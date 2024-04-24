@@ -18,12 +18,25 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
+    needs:
+      - create-release
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include: 
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: universal-apple-darwin
+            os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: loriini
