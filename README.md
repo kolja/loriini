@@ -13,16 +13,16 @@ A colorful [parrot](https://en.wikipedia.org/wiki/Loriini); Now also a commandli
 
 ### MacOS
 
-On MacOS you can use Homebrew to install it:
+On macOS and Linux you can use [Homebrew](https://brew.sh/) to install:
 ```
 brew tap kolja/loriini
 brew install loriini
 ```
 ### Linux
 
-For now you'll have to download the [binary](https://github.com/kolja/loriini/releases/download/v0.1.2/loriini-x86_64-unknown-linux-gnu.tar.gz) and place it in ```/usr/local/bin``` manually:
+Or download the [binary](https://github.com/kolja/loriini/releases/download/v0.1.5/loriini-x86_64-unknown-linux-musl.tar.gz) and place it in ```/usr/local/bin``` manually:
 ```
-tar -xf loriini-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/bin
+tar -xf loriini-x86_64-unknown-linux-musl.tar.gz -C /usr/local/bin
 ```
 
 ## commandline options
