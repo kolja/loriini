@@ -7,6 +7,7 @@ on:
   push:
     tags:
       - v[0-9]+.*
+  workflow_dispatch:
 
 jobs:
   create-release:
@@ -40,4 +41,5 @@ jobs:
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: loriini
+          target: ${{ matrix.target }}
           token: ${{ secrets.GITHUB_TOKEN }}
