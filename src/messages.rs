@@ -6,7 +6,7 @@ pub enum Messages {
     Prev,
     Copy,
     Quit,
-    Unknown(String),
+    Unknown
 }
 
 impl From<String> for Messages {
@@ -18,7 +18,7 @@ impl From<String> for Messages {
             "Prev" => Messages::Prev,
             "Copy" => Messages::Copy,
             "Quit" => Messages::Quit,
-            _ => Messages::Unknown(event),
+            _ => Messages::Unknown,
         }
     }
 }

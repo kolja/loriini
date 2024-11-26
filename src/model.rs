@@ -17,9 +17,8 @@ pub struct Area {
 
 pub struct SliderData {
     pub colors: Vec<palette::Hsl>,
-    pub width: u8,
-    pub pos: u8
 }
+
 pub struct PreviewData {
     pub bgcolor: palette::Hsl,
     pub textcolor: palette::Hsl,

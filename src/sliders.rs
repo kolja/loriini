@@ -1,6 +1,6 @@
 
 use crate::model::{Area, Slider, SliderData, PreviewData};
-use palette::{Hsl, FromColor, Shade};
+use palette::{Hsl, FromColor, Lighten, Darken};
 use palette::luma::Luma;
 
 impl Area {
@@ -29,8 +29,6 @@ impl Area {
                                 Hsl::new(h, i as f32 * step, l)
                             }
                         }).collect::<Vec<Hsl>>(),
-                    pos: saturation_marker,
-                    width
                 };
                 Slider::Saturation(Some(data))
             },
@@ -44,12 +42,10 @@ impl Area {
                                 Hsl::new(h, s, i as f32 * step)
                             }
                         }).collect::<Vec<Hsl>>(),
-                    pos: lightness_marker,
-                    width
                 };
                 Slider::Lightness(Some(data))
             },
-            Slider::Preview(_) => { 
+            Slider::Preview(_) => {
                 let mut text_color: Hsl = Hsl::from_color(self.color);
                 let luma: Luma = Luma::from_color(self.color);
                 let mut contrast: f32 = 0.0;

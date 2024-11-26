@@ -102,7 +102,7 @@ impl Point for (f64, f64) {
 
 impl Area {
     pub fn triangle(&mut self) -> &mut Self {
-        let angle = self.color.hue.to_degrees() as f64;
+        let angle = self.color.hue.into_degrees() as f64;
         let t = &Triangle::new(self.inner_radius, angle);
 
         for i in 0..self.height {

@@ -57,11 +57,11 @@ impl Area {
                     [(None, None), (None, Some(d))] => format!("{}▗", Fg(term_color(&d))),
                     [(None, None), (Some(c), None)] => format!("{}▖", Fg(term_color(&c))),
                     [(None, None), (Some(c), Some(d))] => {
-                        format!("{}▄", Fg(term_color(&c.mix(&d, 0.5))))
+                        format!("{}▄", Fg(term_color(&c.mix(d, 0.5))))
                     }
                     [(None, Some(b)), (None, None)] => format!("{}▝", Fg(term_color(&b))),
                     [(None, Some(b)), (None, Some(d))] => {
-                        format!("{}▐", Fg(term_color(&b.mix(&d, 0.5))))
+                        format!("{}▐", Fg(term_color(&b.mix(d, 0.5))))
                     }
                     [(None, Some(b)), (_c, None)] => format!("{}▞", Fg(term_color(&b))),
                     [(None, _b), (_c, Some(d))] => format!("{}▟", Fg(term_color(&d))),
@@ -70,14 +70,14 @@ impl Area {
                     [(Some(a), None), (_c, None)] => format!("{}▌", Fg(term_color(&a))),
                     [(_a, None), (Some(c), _d)] => format!("{}▙", Fg(term_color(&c))),
                     [(Some(a), Some(b)), (None, None)] => {
-                        format!("{}▀", Fg(term_color(&a.mix(&b, 0.5))))
+                        format!("{}▀", Fg(term_color(&a.mix(b, 0.5))))
                     }
                     [(_a, Some(b)), (None, _d)] => format!("{}▜", Fg(term_color(&b))),
                     [(Some(a), _b), (_c, None)] => format!("{}▛", Fg(term_color(&a))),
                     [(Some(a), Some(b)), (Some(c), Some(d))] => format!(
                         "{}{}▄{}",
-                        Bg(term_color(&a.mix(&b, 0.5))),
-                        Fg(term_color(&c.mix(&d, 0.5))),
+                        Bg(term_color(&a.mix(b, 0.5))),
+                        Fg(term_color(&c.mix(d, 0.5))),
                         Bg(Reset)
                     ),
                 })

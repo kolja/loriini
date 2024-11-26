@@ -1,13 +1,13 @@
 [package]
 name = "loriini"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 
 [dependencies]
-rand = "*"
-hex = "*"
-termion = "*"
-palette = "*"
-itertools = "*"
-clap = {version = "*", features = ["derive"]}
+rand = "0.8"
+hex = "0.4"
+termion = "4.0"
+palette = "0.7.6"
+itertools = "0.13"
+clap = {version = "4.5", features = ["derive"]}
 cli-clipboard = "0.4.0"
