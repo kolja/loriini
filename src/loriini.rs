@@ -1,4 +1,4 @@
-use cli_clipboard;
+use arboard::Clipboard;
 use palette::{FromColor, Hsl, Srgb};
 
 use std::io::{stdout, Write};
@@ -82,7 +82,9 @@ impl Loriini {
                         (srgb.green * 255.0) as u8,
                         (srgb.blue * 255.0) as u8
                     );
-                    cli_clipboard::set_contents(hex).unwrap();
+                    if let Ok(mut cb) = Clipboard::new() {
+                        let _ = cb.set_text(hex);
+                    }
                 }
                 Key::Char('h') | Key::Left => {
                     match area.edit_mode.active() {
