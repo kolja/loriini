@@ -10,5 +10,4 @@ termion = "4.0"
 palette = "0.7.6"
 itertools = "0.14"
 clap = {version = "4.5", features = ["derive"]}
-arboard = { version = "3", features = ["wayland-data-control"] }
 

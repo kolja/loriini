@@ -7,6 +7,7 @@ mod loriini;
 use loriini::Loriini;
 
 mod circle;
+mod clipboard;
 mod draw;
 mod triangle;
 mod sliders;
