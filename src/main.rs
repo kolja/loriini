@@ -18,6 +18,9 @@ mod editmode;
 use editmode::{EditMode, Mode};
 
 
+const DEFAULT_RADIUS: f64 = 6.0;
+
+
 #[derive(Parser, Debug)]
 #[clap(
     author = "Kolja Wilcke",
@@ -25,15 +28,14 @@ use editmode::{EditMode, Mode};
     about = "A console color picker"
 )]
 struct Cli {
-    // the number of rows:
-    #[arg(short = 's', value_name = "Size", default_value_t = 12)]
-    size: usize,
+    #[arg(short = 's', value_name = "Size")]
+    size: Option<usize>,
 
     #[arg(short = 'x', value_name = "factorx (float)", default_value_t = 0.5)]
     factorx: f64,
 
-    #[arg(short = 'r', value_name = "outer radius", default_value_t = 6.0)]
-    radius: f64,
+    #[arg(short = 'r', value_name = "outer radius")]
+    radius: Option<f64>,
 
     #[arg(short = 'i', long, value_name = "inner radius")]
     inner_radius: Option<f64>,
@@ -45,32 +47,33 @@ struct Cli {
     pipe: Option<String>,
 }
 
+fn dims(size: Option<usize>, radius: Option<f64>, factorx: f64) -> (usize, usize, f64) {
+    let radius = radius.unwrap_or_else(|| match size {
+        Some(s) => s as f64 / 2.0,
+        None => DEFAULT_RADIUS,
+    });
+    let height = size.unwrap_or_else(|| (2.0 * radius).ceil() as usize);
+    let width = (height as f64 / factorx).ceil() as usize;
+    (width, height, radius)
+}
+
 fn main() {
 
     let args = Cli::parse();
     let color = helpers::hex_to_hsl(&args.color);
 
-    let height = args.size;
-    let width = height * 2;
-
-    let radius = args.radius;
-    let inner_radius = match args.inner_radius {
-        Some(r) => r,
-        None => radius * 0.7,
-    };
-    let factorx = args.factorx;
-    let show_info: bool = true;
-    let pipe = args.pipe;
+    let (width, height, radius) = dims(args.size, args.radius, args.factorx);
+    let inner_radius = args.inner_radius.unwrap_or(radius * 0.7);
 
     let area = Area {
         width,
         height,
         radius,
         inner_radius,
-        factorx,
+        factorx: args.factorx,
         color,
-        show_info,
-        pipe,
+        show_info: true,
+        pipe: args.pipe,
         edit_mode: EditMode { modes: vec![Mode::Hue, Mode::Lightness, Mode::Saturation] },
         grid: vec![vec![None; width]; height],
         sliders: Vec::new()
