@@ -20,7 +20,7 @@ brew install loriini
 ```
 ### Linux
 
-Or download the [binary](https://github.com/kolja/loriini/releases/download/v0.1.5/loriini-x86_64-unknown-linux-musl.tar.gz) and place it in ```/usr/local/bin``` manually:
+Or download the [binary](https://github.com/kolja/loriini/releases/latest/download/loriini-x86_64-unknown-linux-musl.tar.gz) and place it in ```/usr/local/bin``` manually:
 ```
 tar -xf loriini-x86_64-unknown-linux-musl.tar.gz -C /usr/local/bin
 ```

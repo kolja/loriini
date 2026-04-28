@@ -24,7 +24,7 @@ const DEFAULT_RADIUS: f64 = 6.0;
 #[derive(Parser, Debug)]
 #[clap(
     author = "Kolja Wilcke",
-    version = "0.1.6",
+    version = env!("CARGO_PKG_VERSION"),
     about = "A console color picker"
 )]
 struct Cli {

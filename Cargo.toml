@@ -1,7 +1,13 @@
 [package]
 name = "loriini"
-version = "0.1.6"
-edition = "2021"
+version = "0.1.7"
+edition = "2024"
+description = "A console color picker"
+license = "MIT"
+repository = "https://github.com/kolja/loriini"
+homepage = "https://github.com/kolja/loriini"
+keywords = ["cli", "color", "tui", "picker"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 rand = "0.10"
