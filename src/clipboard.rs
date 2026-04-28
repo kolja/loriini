@@ -8,8 +8,7 @@ pub fn set(text: &str) -> io::Result<()> {
             Err(_) => continue,
         }
     }
-    Err(io::Error::new(
-        io::ErrorKind::Other,
+    Err(io::Error::other(
         "no clipboard backend available",
     ))
 }
@@ -50,8 +49,7 @@ fn try_write(bin: &str, args: &[&str], text: &str) -> io::Result<()> {
         .write_all(text.as_bytes())?;
     let status = child.wait()?;
     if !status.success() {
-        return Err(io::Error::new(
-            io::ErrorKind::Other,
+        return Err(io::Error::other(
             format!("{} exited with {}", bin, status),
         ));
     }

@@ -25,7 +25,7 @@ impl Loriini {
 
     fn respond(file: &mut File, payload: String) -> Result<(), std::io::Error> {
         let mut color: String = payload.clone();
-        color.push_str("\n");
+        color.push('\n');
         file.write_all(color.as_bytes()).unwrap();
         file.flush().unwrap();
         Ok(())

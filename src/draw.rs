@@ -1,4 +1,3 @@
-use termion;
 use termion::color::{Bg, Fg, Reset};
 
 use itertools::Itertools;
