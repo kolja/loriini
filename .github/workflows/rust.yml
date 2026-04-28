@@ -23,7 +23,7 @@ jobs:
       - create-release
     strategy:
       matrix:
-        include: 
+        include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
           - target: x86_64-unknown-linux-musl
@@ -43,3 +43,127 @@ jobs:
           bin: loriini
           target: ${{ matrix.target }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  bump-homebrew:
+    needs: upload-assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve version
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout tap
+        uses: actions/checkout@v4
+        with:
+          repository: kolja/homebrew-loriini
+          token: ${{ secrets.TAP_TOKEN }}
+          path: tap
+
+      - name: Compute SHAs from release assets
+        id: sha
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          base="https://github.com/kolja/loriini/releases/download/v${VERSION}"
+          for f in loriini-aarch64-apple-darwin.tar.gz loriini-x86_64-apple-darwin.tar.gz loriini-x86_64-unknown-linux-musl.tar.gz; do
+            for i in $(seq 1 30); do
+              curl -fsLI "$base/$f" >/dev/null && break
+              sleep 5
+            done
+          done
+          {
+            echo "arm=$(curl -sL "$base/loriini-aarch64-apple-darwin.tar.gz" | sha256sum | cut -d' ' -f1)"
+            echo "intel=$(curl -sL "$base/loriini-x86_64-apple-darwin.tar.gz" | sha256sum | cut -d' ' -f1)"
+            echo "linux=$(curl -sL "$base/loriini-x86_64-unknown-linux-musl.tar.gz" | sha256sum | cut -d' ' -f1)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Bump formula
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          SHA_ARM: ${{ steps.sha.outputs.arm }}
+          SHA_INTEL: ${{ steps.sha.outputs.intel }}
+          SHA_LINUX: ${{ steps.sha.outputs.linux }}
+        run: |
+          set -euo pipefail
+          f=tap/Formula/loriini.rb
+          sed -i -E "s|^(  VERSION *= *)\".*\"|\1\"${VERSION}\"|"           "$f"
+          sed -i -E "s|^(  SHA256_DARWIN_ARM *= *)\".*\"|\1\"${SHA_ARM}\"|" "$f"
+          sed -i -E "s|^(  SHA256_DARWIN_X86 *= *)\".*\"|\1\"${SHA_INTEL}\"|" "$f"
+          sed -i -E "s|^(  SHA256_LINUX_X86 *= *)\".*\"|\1\"${SHA_LINUX}\"|" "$f"
+          ruby -c "$f"
+
+      - name: Commit and push
+        working-directory: tap
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/loriini.rb
+          git diff --cached --quiet && { echo "no changes"; exit 0; }
+          git commit -m "loriini ${VERSION}"
+          git push
+
+  bump-aur:
+    needs: upload-assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve version
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for asset and compute sha256
+        id: sha
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          url="https://github.com/kolja/loriini/releases/download/v${VERSION}/loriini-x86_64-unknown-linux-musl.tar.gz"
+          for i in $(seq 1 30); do
+            curl -fsLI "$url" >/dev/null && break
+            sleep 5
+          done
+          echo "sha=$(curl -sL "$url" | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Render PKGBUILD
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          SHA: ${{ steps.sha.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p aur
+          cat > aur/PKGBUILD <<EOF
+          # Maintainer: Kolja Wilcke <kolja.wilcke@proton.me>
+          pkgname=loriini-bin
+          _pkgname=loriini
+          pkgver=${VERSION}
+          pkgrel=1
+          pkgdesc="A console color picker"
+          arch=('x86_64')
+          url="https://github.com/kolja/loriini"
+          license=('MIT')
+          provides=("\$_pkgname")
+          conflicts=("\$_pkgname")
+          options=('!debug')
+          source_x86_64=("\$pkgname-\$pkgver.tar.gz::\$url/releases/download/v\$pkgver/loriini-\${CARCH}-unknown-linux-musl.tar.gz"
+                         "LICENSE-\$pkgver.md::\$url/raw/v\$pkgver/LICENSE.md")
+          sha256sums_x86_64=('${SHA}'
+                             'SKIP')
+
+          package() {
+              install -Dm755 "\$srcdir/\$_pkgname" "\$pkgdir/usr/bin/\$_pkgname"
+              install -Dm644 "\$srcdir/LICENSE-\$pkgver.md" "\$pkgdir/usr/share/licenses/\$pkgname/LICENSE"
+          }
+          EOF
+
+      - name: Push to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
+        with:
+          pkgname: loriini-bin
+          pkgbuild: aur/PKGBUILD
+          commit_username: Kolja Wilcke
+          commit_email: kolja.wilcke@proton.me
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update to ${{ steps.ver.outputs.version }}
