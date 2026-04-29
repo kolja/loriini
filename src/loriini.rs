@@ -1,4 +1,4 @@
-use palette::{FromColor, Hsl, Srgb};
+use palette::Hsl;
 
 use crate::clipboard;
 
@@ -76,14 +76,7 @@ impl Loriini {
                 Key::Char('j') | Key::Down => area.edit_mode.next(),
                 Key::Char('k') | Key::Up => area.edit_mode.previous(),
                 Key::Char('y') => {
-                    let srgb = Srgb::from_color(area.color);
-                    let hex = format!(
-                        "{:02X}{:02X}{:02X}",
-                        (srgb.red * 255.0) as u8,
-                        (srgb.green * 255.0) as u8,
-                        (srgb.blue * 255.0) as u8
-                    );
-                    let _ = clipboard::set(&hex);
+                    let _ = clipboard::set(&helpers::hsl_to_hex(&area.color));
                 }
                 Key::Char('h') | Key::Left => {
                     match area.edit_mode.active() {

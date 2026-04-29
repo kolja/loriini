@@ -12,7 +12,6 @@ mod draw;
 mod triangle;
 mod sliders;
 mod helpers;
-mod messages;
 
 mod editmode;
 use editmode::{EditMode, Mode};
