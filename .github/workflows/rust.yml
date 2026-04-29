@@ -11,6 +11,7 @@ on:
 
 jobs:
   create-release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,6 +20,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
+    if: github.event_name == 'push'
     needs:
       - create-release
     strategy:
@@ -45,6 +47,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   bump-homebrew:
+    if: github.event_name == 'push'
     needs: upload-assets
     runs-on: ubuntu-latest
     steps:
@@ -108,6 +111,7 @@ jobs:
 
   bump-aur:
     needs: upload-assets
+    if: ${{ always() && (needs.upload-assets.result == 'success' || needs.upload-assets.result == 'skipped') }}
     runs-on: ubuntu-latest
     steps:
       - name: Resolve version
@@ -159,7 +163,7 @@ jobs:
           EOF
 
       - name: Push to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
         with:
           pkgname: loriini-bin
           pkgbuild: aur/PKGBUILD
