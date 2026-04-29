@@ -8,6 +8,11 @@ on:
     tags:
       - v[0-9]+.*
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to bump AUR for (e.g. v1.2.3). Leave blank when triggered by tag push.'
+        required: false
+        type: string
 
 jobs:
   create-release:
@@ -116,7 +121,11 @@ jobs:
     steps:
       - name: Resolve version
         id: ver
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          ref="${INPUT_TAG:-$GITHUB_REF_NAME}"
+          echo "version=${ref#v}" >> "$GITHUB_OUTPUT"
 
       - name: Wait for asset and compute sha256
         id: sha
